@@ -1,0 +1,11 @@
+1,Food
+2,Transport
+3,Salary
+4,Entertainment
+5,Shopping
+6,Health
+7,Bills
+8,Education
+9,Travel
+10,Insurance
+11,Other
