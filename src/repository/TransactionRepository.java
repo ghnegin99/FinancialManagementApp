@@ -19,6 +19,7 @@ public class TransactionRepository {
     private UserRepository userRepository = new UserRepository();
     private CategoryRepository categoryRepository = new CategoryRepository();
 
+
     public List<Transaction> getAllTransactions() {
 
         List<Transaction> transactions = new ArrayList<>();
@@ -40,27 +41,81 @@ public class TransactionRepository {
                     continue;
                 }
 
-                String[] data = line.split(",");
 
-                User user = userRepository.findById(
-                        Integer.parseInt(data[1]));
+                String[] data = line.split(",", -1);
 
-                Category category = categoryRepository.findById(
-                        Integer.parseInt(data[5]));
 
-                Transaction transaction = new Transaction(
-                        Integer.parseInt(data[0]),
-                        user,
-                        data[2],
-                        Double.parseDouble(data[3]),
-                        TransactionType.valueOf(data[4]),
-                        category,
-                        LocalDate.parse(data[6]),
-                        data[7]
-                );
+                if (data.length < 7) {
+                    System.out.println(
+                            "Invalid transaction line: " + line
+                    );
+                    continue;
+                }
 
-                transactions.add(transaction);
+                try {
 
+                    int id = Integer.parseInt(data[0]);
+
+                    int userId = Integer.parseInt(data[1]);
+                    User user = userRepository.findById(userId);
+
+                    if (user == null) {
+                        System.out.println(
+                                "User not found for transaction: " + line
+                        );
+                        continue;
+                    }
+
+                    String title = data[2];
+
+                    double amount = Double.parseDouble(data[3]);
+
+                    TransactionType type =
+                            TransactionType.valueOf(data[4]);
+
+                    int categoryId = Integer.parseInt(data[5]);
+                    Category category =
+                            categoryRepository.findById(categoryId);
+
+                    if (category == null) {
+                        System.out.println(
+                                "Category not found for transaction: " + line
+                        );
+                        continue;
+                    }
+
+                    LocalDate date = LocalDate.parse(data[6]);
+
+
+                    String description =
+                            data.length > 7 ? data[7] : "";
+
+                    Transaction transaction = new Transaction(
+                            id,
+                            user,
+                            title,
+                            amount,
+                            type,
+                            category,
+                            date,
+                            description
+                    );
+
+                    transactions.add(transaction);
+
+                } catch (NumberFormatException e) {
+
+                    System.out.println(
+                            "Invalid number in transaction: " + line
+                    );
+
+                } catch (IllegalArgumentException e) {
+
+                    System.out.println(
+                            "Invalid transaction data: " + line
+                    );
+
+                }
             }
 
         } catch (IOException e) {
@@ -79,18 +134,6 @@ public class TransactionRepository {
         saveAllTransactions(transactions);
     }
 
-//    public Transaction findById(int id) {
-//
-//        for (Transaction transaction : getAllTransactions()) {
-//
-//            if (transaction.getId() == id) {
-//                return transaction;
-//            }
-//
-//        }
-//
-//        return null;
-//    }
 
     public Transaction findById(int id) {
 
@@ -183,6 +226,7 @@ public class TransactionRepository {
         }
 
     }
+
     public List<Transaction> getTransactionsByCategory(Category category) {
 
         List<Transaction> result = new ArrayList<>();
@@ -200,6 +244,7 @@ public class TransactionRepository {
         return result;
 
     }
+
     public List<Transaction> getTransactionsByUserCategoryAndMonth(User user,
                                                                    Category category,
                                                                    YearMonth month) {
